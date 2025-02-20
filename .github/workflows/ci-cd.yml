@@ -56,11 +56,16 @@ jobs:
       - name: Pull Latest Docker Image
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker pull ${{ secrets.IMAGE_NAME }}:v2"
 
-      - name: Stop Old Container
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker stop my-coba-app"
-
-      - name: Remove Old Container
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker rm my-coba-app"
+      - name: Stop and Remove Old Container (If Exists)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+          if [ \$(docker ps -q -f name=my-coba-app) ]; then
+            echo 'Stopping and removing old container...'
+            docker stop my-coba-app && docker rm my-coba-app
+          else
+            echo 'No existing container found. Skipping stop and remove.'
+          fi
+          "
 
       - name: Run New Container
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker run -d --name my-coba-app -p 9000:9000 ${{ secrets.IMAGE_NAME }}:v2"
