@@ -40,3 +40,30 @@ jobs:
         run: |
           docker build -t ${{ secrets.IMAGE_NAME }}:latest .
           docker push ${{ secrets.IMAGE_NAME }}:latest
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Test SSH Connection
+        run: ssh -v -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Pull Latest Docker Image
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker pull ${{ secrets.IMAGE_NAME }}:latest"
+
+      - name: Prune Unused Docker Images
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker image prune -f"
+
+      - name: Stop Old Container
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker stop my-coba-app"
+
+      - name: Remove Old Container
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker rm my-coba-app"
+
+      - name: Run New Container
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker run -d --name my-coba-app -p 9000:9000 ${{ secrets.IMAGE_NAME }}:latest"
