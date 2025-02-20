@@ -27,7 +27,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Check for Changes in package.json
+      - name: Cek apakah ada perubahan di package.json
         id: check-package
         run: |
           if git diff --quiet HEAD^ HEAD -- package.json package-lock.json; then
@@ -68,7 +68,6 @@ jobs:
       - name: Pull Latest Docker Image
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker pull ${{ secrets.IMAGE_NAME }}:v2"
 
-        # cek jika tidak ada container dengan nama yang sama tidak perlu di hapus
       - name: Stop and Remove Old Container (If Exists)
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
