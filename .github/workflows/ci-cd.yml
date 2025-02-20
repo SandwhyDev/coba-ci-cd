@@ -27,7 +27,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install Dependencies
+      - name: Check for Changes in package.json
+        id: check-package
+        run: |
+          if git diff --quiet HEAD^ HEAD -- package.json package-lock.json; then
+            echo "No changes in package.json or package-lock.json"
+            echo "INSTALL_DEPS=false" >> $GITHUB_ENV
+          else
+            echo "Changes detected in package.json or package-lock.json"
+            echo "INSTALL_DEPS=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install Dependencies (if needed)
+        if: env.INSTALL_DEPS == 'true'
         run: npm i
 
       - name: Build
@@ -56,6 +68,7 @@ jobs:
       - name: Pull Latest Docker Image
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker pull ${{ secrets.IMAGE_NAME }}:v2"
 
+        # cek jika tidak ada container dengan nama yang sama tidak perlu di hapus
       - name: Stop and Remove Old Container (If Exists)
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
