@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, "/public")));
 app.get("/:v?", (req, res) => {
   const { v } = req.params;
 
-  const text = v ? `mantap version ${v}` : `mantap non version`;
+  const text = v ? `page ${v}` : `home page`;
 
   res.send(text);
 });
