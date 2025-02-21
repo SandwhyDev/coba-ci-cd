@@ -19,7 +19,7 @@ app.get("/:v?", (req, res) => {
 
   const text = v ? `page ${v}` : `home page`;
 
-  res.send(text);
+  res.send(`home page`);
 });
 
 //ROUTES
